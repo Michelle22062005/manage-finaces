@@ -1,19 +1,48 @@
 import { Tabs } from 'expo-router';
-
-import { palette } from '@/constants/theme';
+import { Text } from 'react-native';
 
 export default function MainLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: palette.primaryDark,
-        tabBarInactiveTintColor: palette.textMuted,
-        tabBarStyle: { backgroundColor: palette.surface, borderTopColor: palette.border },
-      }}>
-      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
-      <Tabs.Screen name="historial" options={{ title: 'Historial' }} />
-      <Tabs.Screen name="perfil" options={{ title: 'Perfil' }} />
+        tabBarActiveTintColor: '#4EA8DE',
+        tabBarInactiveTintColor: '#8D99AE',
+        tabBarStyle: {
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 8,
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E2E8F0',
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Inicio',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>🏠</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="historial"
+        options={{
+          title: 'Historial',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>📋</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>👤</Text>,
+        }}
+      />
     </Tabs>
   );
 }

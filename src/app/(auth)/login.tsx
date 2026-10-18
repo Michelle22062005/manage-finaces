@@ -10,16 +10,9 @@ import {
   ScrollView 
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
 // Colores basados en tu paleta "Calidez en Ruta"
-const COLORS = {
-  primary: '#4EA8DE',     // Azul principal
-  background: '#F4F9FD',  // Fondo neutro muy suave
-  card: '#FFFFFF',        // Tarjetas blancas
-  textPrimary: '#2B2D42', // Texto oscuro principal
-  textSecondary: '#8D99AE',// Texto secundario
-  border: '#E2E8F0',      // Bordes suaves
-};
+import { COLORS } from '@/constants/theme';
+
 
 export default function LoginScreen() {
   const router = useRouter();

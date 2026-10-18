@@ -4,9 +4,15 @@ import { useColorScheme } from 'react-native';
 import { AuthStoreProvider } from '@/context/useAuthStore';
 import { MovementsStoreProvider } from '@/context/useMovementsStore';
 
+import { useEffect } from "react";
+import * as NavigationBar from "expo-navigation-bar";
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-
+  
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync("hidden")
+  }, []);
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthStoreProvider>
