@@ -3,6 +3,8 @@ import { Category, Transaction, Kind } from '../types/finance';
 import { dbService } from '../services/db';
 
 interface FinanceState {
+  userId: string | null;
+  setUserId: (id: string) => void;
   categories: Category[];
   transactions: Transaction[];
   selectedFilter: 'todos' | Kind;
@@ -22,6 +24,8 @@ interface FinanceState {
 }
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
+  userId: null,                             // Inicializado en null
+  setUserId: (userId) => set({ userId }),   // Implementado
   categories: [],
   transactions: [],
   selectedFilter: 'todos',

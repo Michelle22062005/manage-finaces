@@ -1,7 +1,16 @@
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useFinanceStore } from '@/context/useFinanceStore';
 
 export default function MainLayout() {
+  const { loadInitialData } = useFinanceStore();
+
+  useEffect(() => {
+    // Cargar datos del usuario desde Neon al abrir la app
+    loadInitialData('user-id-dinamico'); // Reemplaza con el ID del usuario real
+  }, []);
+
   return (
     <Tabs
       screenOptions={{

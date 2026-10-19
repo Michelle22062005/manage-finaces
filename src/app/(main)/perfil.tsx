@@ -13,10 +13,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useFinanceStore } from '@/context/useFinanceStore';
 import { COLORS } from '@/constants/theme';
+import { useAuthStore } from '@/context/useAuthStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { categories } = useFinanceStore();
+  const user = useAuthStore((state) => state.user);
 
   const handleLogout = () => {
     Alert.alert(
@@ -45,9 +47,9 @@ export default function ProfileScreen() {
           <View style={styles.avatarLarge}>
             <Text style={styles.avatarTextLarge}>D</Text>
           </View>
-          <Text style={styles.userName}>Danna</Text>
+          <Text style={styles.userName}>{user?.name || 'Usuario'}</Text>
           <Text style={styles.userRole}>Conductora de Taxi 🚕</Text>
-          <Text style={styles.userEmail}>danna.conductora@ejemplo.com</Text>
+          <Text style={styles.userEmail}>{user?.email || 'correo@ejemplo.com'}</Text>
         </View>
 
         {/* 2. Resumen de Estadísticas */}
