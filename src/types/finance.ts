@@ -12,11 +12,11 @@ export interface Category {
 
 export interface Transaction {
   id: number;
-  userId: string;
+  userId?: string;
   kind: Kind;
   amount: number;
   date: string; // Formato YYYY-MM-DD
-  categoryId: number;
+  categoryId: number | null;
   note?: string | null;
   createdAt?: string;
 }

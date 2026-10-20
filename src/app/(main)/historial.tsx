@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   Text,
@@ -8,52 +8,76 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-} from 'react-native';
-import { useFinanceStore } from '@/context/useFinanceStore';
-import { COLORS } from '@/constants/theme';
+} from "react-native";
+import { useFinanceStore } from "@/context/useFinanceStore";
+import { COLORS } from "@/constants/theme";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
+
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+// Hoy en Colombia, formato AAAA-MM-DD
+const hoyColombia = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+
+// Resta días a una fecha AAAA-MM-DD sin problemas de zona horaria
+const restarDias = (fecha: string, dias: number) => {
+  const [y, m, d] = fecha.split("-").map(Number);
+  const f = new Date(Date.UTC(y, m - 1, d - dias));
+  return f.toISOString().slice(0, 10);
+};
+
+const etiquetaDia = (fecha: string) => {
+  const hoy = hoyColombia();
+  if (fecha === hoy) return "Hoy";
+  if (fecha === restarDias(hoy, 1)) return "Ayer";
+  const [, m, d] = fecha.split("-").map(Number);
+  return `${d} de ${MESES[m - 1]}`;
+};
+
+const etiquetaMes = () => {
+  const [y, m] = hoyColombia().split("-").map(Number);
+  const nombre = MESES[m - 1];
+  return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${y}`;
+};
 
 export default function HistoryScreen() {
   const { transactions, categories, selectedFilter, setFilter } = useFinanceStore();
 
-  // Filtrar transacciones según el chip seleccionado
-  const filteredTransactions = transactions.filter((t) => {
-    if (selectedFilter === 'todos') return true;
-    return t.kind === selectedFilter;
-  });
+  // Filtrar según el chip seleccionado
+  const filteredTransactions = transactions.filter(
+    (t) => selectedFilter === "todos" || t.kind === selectedFilter,
+  );
 
-  // Agrupar transacciones por fecha
-  const groupedByDate = filteredTransactions.reduce((groups: Record<string, typeof transactions>, tx) => {
-    const dateKey = tx.date; // "YYYY-MM-DD"
-    if (!groups[dateKey]) {
-      groups[dateKey] = [];
-    }
-    groups[dateKey].push(tx);
-    return groups;
-  }, {});
+  // Agrupar por fecha ("AAAA-MM-DD")
+  const groupedByDate = filteredTransactions.reduce<Record<string, typeof transactions>>(
+    (groups, tx) => {
+      (groups[tx.date] ??= []).push(tx);
+      return groups;
+    },
+    {},
+  );
 
-  // Convertir el objeto agrupado en un array ordenado por fecha descendente
+  // Ordenar de la fecha más reciente a la más antigua y calcular el neto de cada día
   const sortedDateGroups = Object.keys(groupedByDate)
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .sort((a, b) => b.localeCompare(a))
     .map((date) => {
-      const dayTxs = groupedByDate[date];
-      // Calcular el neto del día (Ingresos - Gastos de ese día)
-      const dayNet = dayTxs.reduce((acc, t) => {
-        return t.kind === 'ingreso' ? acc + t.amount : acc - t.amount;
-      }, 0);
-
-      return {
-        date,
-        dayNet,
-        movements: dayTxs,
-      };
+      const movements = groupedByDate[date];
+      const dayNet = movements.reduce(
+        (acc, t) => (t.kind === "ingreso" ? acc + t.amount : acc - t.amount),
+        0,
+      );
+      return { date, dayNet, movements };
     });
 
-  // Helper para buscar los datos de la categoría (nombre e ícono)
-  const getCategoryDetails = (categoryId: number) => {
-    const cat = categories.find((c) => c.id === categoryId);
+  // Nombre e ícono de la categoría (puede no tener)
+  const getCategoryDetails = (categoryId: number | null) => {
+    const cat = categoryId == null ? undefined : categories.find((c) => c.id === categoryId);
     return {
-      name: cat ? cat.name : 'General',
-      icon: cat ? cat.icon || '📁' : '📁',
+      name: cat?.name ?? "General",
+      icon: cat?.icon ?? null,
     };
   };
 
@@ -63,35 +87,47 @@ export default function HistoryScreen() {
         <View style={styles.titleRow}>
           <Text style={styles.screenTitle}>Historial</Text>
           <View style={styles.monthSelector}>
-            <Text style={styles.monthText}>Octubre 2026 ▾</Text>
+            <Text style={styles.monthText}>{etiquetaMes()}</Text>
           </View>
         </View>
 
-        {/* Filtros Chips: Todos / Ingresos / Gastos */}
+        {/* Filtros: Todos / Ingresos / Gastos */}
         <View style={styles.filterContainer}>
           <TouchableOpacity
-            style={[styles.filterChip, selectedFilter === 'todos' && styles.activeFilterChip]}
-            onPress={() => setFilter('todos')}
+            style={[styles.filterChip, selectedFilter === "todos" && styles.activeFilterChip]}
+            onPress={() => setFilter("todos")}
           >
-            <Text style={[styles.filterText, selectedFilter === 'todos' && styles.activeFilterText]}>
+            <Text style={[styles.filterText, selectedFilter === "todos" && styles.activeFilterText]}>
               Todos
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.filterChip, selectedFilter === 'ingreso' && { backgroundColor: COLORS.secondary, borderColor: COLORS.secondary }]}
-            onPress={() => setFilter('ingreso')}
+            style={[
+              styles.filterChip,
+              selectedFilter === "ingreso" && {
+                backgroundColor: COLORS.secondary,
+                borderColor: COLORS.secondary,
+              },
+            ]}
+            onPress={() => setFilter("ingreso")}
           >
-            <Text style={[styles.filterText, selectedFilter === 'ingreso' && styles.activeFilterText]}>
+            <Text style={[styles.filterText, selectedFilter === "ingreso" && styles.activeFilterText]}>
               Ingresos
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.filterChip, selectedFilter === 'gasto' && { backgroundColor: COLORS.expense, borderColor: COLORS.expense }]}
-            onPress={() => setFilter('gasto')}
+            style={[
+              styles.filterChip,
+              selectedFilter === "gasto" && {
+                backgroundColor: COLORS.expense,
+                borderColor: COLORS.expense,
+              },
+            ]}
+            onPress={() => setFilter("gasto")}
           >
-            <Text style={[styles.filterText, selectedFilter === 'gasto' && styles.activeFilterText]}>
+            <Text style={[styles.filterText, selectedFilter === "gasto" && styles.activeFilterText]}>
               Gastos
             </Text>
           </TouchableOpacity>
@@ -101,14 +137,16 @@ export default function HistoryScreen() {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {sortedDateGroups.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No hay movimientos registrados con este filtro.</Text>
+            <Text style={styles.emptyText}>
+              No hay movimientos registrados con este filtro.
+            </Text>
           </View>
         ) : (
           sortedDateGroups.map((group) => (
             <View key={group.date} style={styles.dayGroup}>
               {/* Cabecera del día */}
               <View style={styles.dayHeader}>
-                <Text style={styles.dayTitle}>{group.date}</Text>
+                <Text style={styles.dayTitle}>{etiquetaDia(group.date)}</Text>
                 <Text
                   style={[
                     styles.dayNetText,
@@ -116,15 +154,16 @@ export default function HistoryScreen() {
                   ]}
                 >
                   {group.dayNet >= 0
-                    ? `+ $${group.dayNet.toLocaleString('es-CO')}`
-                    : `- $${Math.abs(group.dayNet).toLocaleString('es-CO')}`}
+                    ? `+ $${group.dayNet.toLocaleString("es-CO")}`
+                    : `- $${Math.abs(group.dayNet).toLocaleString("es-CO")}`}
                 </Text>
               </View>
 
-              {/* Lista de movimientos */}
+              {/* Movimientos del día */}
               <View style={styles.movementsCard}>
                 {group.movements.map((mov, movIndex) => {
                   const cat = getCategoryDetails(mov.categoryId);
+                  const esIngreso = mov.kind === "ingreso";
                   return (
                     <View
                       key={mov.id}
@@ -134,7 +173,7 @@ export default function HistoryScreen() {
                       ]}
                     >
                       <View style={styles.iconCircle}>
-                        <Text style={styles.iconText}>{cat.icon}</Text>
+                        <CategoryIcon name={cat.icon} size={20} color="#4EA8DE" />
                       </View>
 
                       <View style={styles.movementDetails}>
@@ -145,10 +184,10 @@ export default function HistoryScreen() {
                       <Text
                         style={[
                           styles.amountText,
-                          { color: mov.kind === 'ingreso' ? COLORS.secondary : COLORS.expense },
+                          { color: esIngreso ? COLORS.secondary : COLORS.expense },
                         ]}
                       >
-                        {mov.kind === 'ingreso' ? '+' : '-'}${mov.amount.toLocaleString('es-CO')}
+                        {esIngreso ? "+" : "-"}${mov.amount.toLocaleString("es-CO")}
                       </Text>
                     </View>
                   );

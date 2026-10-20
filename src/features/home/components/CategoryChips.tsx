@@ -1,7 +1,8 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useFinanceStore } from '@/context/useFinanceStore';
+import React from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useFinanceStore } from "@/context/useFinanceStore";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
 
 export function CategoryChips() {
   const router = useRouter();
@@ -15,17 +16,26 @@ export function CategoryChips() {
     >
       {categories.map((category) => {
         const spent = getCategorySpent(category.id);
-        
+
         return (
           <TouchableOpacity
             key={category.id}
             style={styles.chipCard}
             activeOpacity={0.7}
-            onPress={() => router.push(`/categoria/${category.id}` as any)}
+            onPress={() => router.push({
+  pathname: "/categoria/[id]",
+  params: { id: String(category.id) },
+})}
           >
-            <Text style={styles.icon}>{category.icon || '📁'}</Text>
-            <Text style={styles.categoryName}>{category.name}</Text>
-            <Text style={styles.spentAmount}>${spent.toLocaleString('es-CO')}</Text>
+            <View style={styles.iconCircle}>
+              <CategoryIcon name={category.icon} size={22} color="#4EA8DE" />
+            </View>
+            <Text style={styles.categoryName} numberOfLines={2}>
+              {category.name}
+            </Text>
+            <Text style={styles.spentAmount}>
+              ${spent.toLocaleString("es-CO")}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -39,31 +49,38 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   chipCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 14,
-    alignItems: 'center',
-    minWidth: 100,
-    shadowColor: '#000',
+    alignItems: "center",
+    width: 112,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 6,
     elevation: 2,
   },
-  icon: {
-    fontSize: 24,
-    marginBottom: 6,
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#E6F3FB", // celeste pastel
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
   },
   categoryName: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#2B2D42',
+    fontWeight: "600",
+    color: "#2B2D42",
+    textAlign: "center",
+    minHeight: 32, // para que todas las tarjetas queden del mismo alto
   },
   spentAmount: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#E76F51',
+    fontWeight: "700",
+    color: "#E76F51",
     marginTop: 2,
   },
 });

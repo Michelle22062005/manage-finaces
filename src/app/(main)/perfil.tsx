@@ -13,12 +13,18 @@ import {
 import { useRouter } from 'expo-router';
 import { useFinanceStore } from '@/context/useFinanceStore';
 import { COLORS } from '@/constants/theme';
-import { useAuthStore } from '@/context/useAuthStore';
+import { useAuth } from "@/lib/auth";
+
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { categories } = useFinanceStore();
-  const user = useAuthStore((state) => state.user);
+  const user = useAuth((s) => s.user);
+const logout = useAuth((s) => s.logout);
+
+const nombre = user?.fullName ?? "Usuario";
+const correo = user?.email ?? "";
+const inicial = nombre.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     Alert.alert(
@@ -47,8 +53,8 @@ export default function ProfileScreen() {
           <View style={styles.avatarLarge}>
             <Text style={styles.avatarTextLarge}>D</Text>
           </View>
-          <Text style={styles.userName}>{user?.name || 'Usuario'}</Text>
-          <Text style={styles.userRole}>Conductora de Taxi 🚕</Text>
+          <Text style={styles.userName}>{user?.fullName || 'Usuario'}</Text>
+          {/* <Text style={styles.userRole}>Conductora de Taxi 🚕</Text> */}
           <Text style={styles.userEmail}>{user?.email || 'correo@ejemplo.com'}</Text>
         </View>
 
@@ -281,7 +287,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   logoutButton: {
-    backgroundColor: COLORS.coralSoft,
+    backgroundColor: '#9acffa',
     height: 52,
     borderRadius: 16,
     justifyContent: 'center',

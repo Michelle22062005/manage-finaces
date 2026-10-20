@@ -1,21 +1,21 @@
-import { create } from 'zustand';
-import { Category, Transaction, Kind } from '../types/finance';
-import { dbService } from '../services/db';
+import { create } from "zustand";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { Category, Kind, Transaction } from "../types/finance";
 
 interface FinanceState {
-  userId: string | null;
-  setUserId: (id: string) => void;
   categories: Category[];
   transactions: Transaction[];
-  selectedFilter: 'todos' | Kind;
+  selectedFilter: "todos" | Kind;
   isLoading: boolean;
 
-  // Acciones de Sincronización
-  loadInitialData: (userId: string) => Promise<void>;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<boolean>;
-  setFilter: (filter: 'todos' | Kind) => void;
+  // Acciones de sincronización
+  loadInitialData: (_userId?: string) => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, "id">) => Promise<boolean>;
+  setFilter: (filter: "todos" | Kind) => void;
+  reset: () => void;
 
-  // Selectores y Cálculos
+  // Selectores y cálculos
   getTotalIncome: () => number;
   getTotalExpenses: () => number;
   getNetBalance: () => number;
@@ -23,75 +23,71 @@ interface FinanceState {
   getCategorySpent: (categoryId: number) => number;
 }
 
+const token = () => useAuth.getState().token;
+
 export const useFinanceStore = create<FinanceState>((set, get) => ({
-  userId: null,                             // Inicializado en null
-  setUserId: (userId) => set({ userId }),   // Implementado
   categories: [],
   transactions: [],
-  selectedFilter: 'todos',
+  selectedFilter: "todos",
   isLoading: false,
 
-  // Cargar datos iniciales desde Neon al abrir la app
-  loadInitialData: async (userId: string) => {
+  // El parámetro se ignora: el usuario sale del token, no de la app
+  loadInitialData: async () => {
     set({ isLoading: true });
     try {
-      const [remoteCategories, remoteTransactions] = await Promise.all([
-        dbService.fetchCategories(userId),
-        dbService.fetchTransactions(userId),
+      const [categories, transactions] = await Promise.all([
+        api<Category[]>("/api/categories", {}, token()),
+        api<Transaction[]>("/api/transactions", {}, token()),
       ]);
-
-      set({
-        categories: remoteCategories,
-        transactions: remoteTransactions,
-        isLoading: false,
-      });
+      set({ categories, transactions });
     } catch (error) {
-      console.error('Error al sincronizar datos iniciales:', error);
+      console.error("Error al cargar datos:", error);
+    } finally {
       set({ isLoading: false });
     }
   },
 
   setFilter: (selectedFilter) => set({ selectedFilter }),
 
-  // Agregar movimiento en Neon + Zustand
-  addTransaction: async (newTxData) => {
-    // 1. Guardar en Neon vía Drizzle/API
-    const savedTx = await dbService.saveTransaction(newTxData);
-
-    if (savedTx) {
-      // 2. Actualizar estado local si la BD respondió con éxito
-      set((state) => ({
-        transactions: [savedTx, ...state.transactions],
-      }));
+  addTransaction: async (newTx) => {
+    try {
+      const saved = await api<Transaction>(
+        "/api/transactions",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            kind: newTx.kind,
+            amount: newTx.amount,
+            date: newTx.date,
+            categoryId: newTx.categoryId ?? null,
+            note: newTx.note ?? null,
+          }),
+        },
+        token(),
+      );
+      set((state) => ({ transactions: [saved, ...state.transactions] }));
       return true;
-    } else {
-      // Fallback local en caso de estar offline
-      const fallbackTx: Transaction = {
-        ...newTxData,
-        id: Date.now(),
-      };
-      set((state) => ({
-        transactions: [fallbackTx, ...state.transactions],
-      }));
+    } catch (error) {
+      console.error("No se pudo guardar el movimiento:", error);
       return false;
     }
   },
 
-  getTotalIncome: () => {
-    return get()
-      .transactions.filter((t) => t.kind === 'ingreso')
-      .reduce((sum, t) => sum + t.amount, 0);
-  },
+  // Al cerrar sesión, limpiar los datos de la usuaria anterior
+  reset: () =>
+    set({ categories: [], transactions: [], selectedFilter: "todos" }),
 
-  getTotalExpenses: () => {
-    return get()
-      .transactions.filter((t) => t.kind === 'gasto')
-      .reduce((sum, t) => sum + t.amount, 0);
-  },
+  getTotalIncome: () =>
+    get()
+      .transactions.filter((t) => t.kind === "ingreso")
+      .reduce((sum, t) => sum + t.amount, 0),
 
-  getNetBalance: () => {
-    return get().getTotalIncome() - get().getTotalExpenses();
-  },
+  getTotalExpenses: () =>
+    get()
+      .transactions.filter((t) => t.kind === "gasto")
+      .reduce((sum, t) => sum + t.amount, 0),
+
+  getNetBalance: () => get().getTotalIncome() - get().getTotalExpenses(),
 
   getSpentPercentage: () => {
     const income = get().getTotalIncome();
@@ -100,9 +96,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     return Math.min(Math.round((expenses / income) * 100), 100);
   },
 
-  getCategorySpent: (categoryId: number) => {
-    return get()
-      .transactions.filter((t) => t.categoryId === categoryId && t.kind === 'gasto')
-      .reduce((sum, t) => sum + t.amount, 0);
-  },
+  getCategorySpent: (categoryId: number) =>
+    get()
+      .transactions.filter((t) => t.categoryId === categoryId && t.kind === "gasto")
+      .reduce((sum, t) => sum + t.amount, 0),
 }));

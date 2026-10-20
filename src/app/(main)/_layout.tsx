@@ -8,7 +8,7 @@ export default function MainLayout() {
 
   useEffect(() => {
     // Cargar datos del usuario desde Neon al abrir la app
-    loadInitialData('user-id-dinamico'); // Reemplaza con el ID del usuario real
+    loadInitialData();
   }, []);
 
   return (
