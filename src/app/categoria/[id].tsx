@@ -1,17 +1,16 @@
-import React from 'react';
+import { COLORS } from "@/constants/theme";
+import { useFinanceStore } from "@/context/useFinanceStore";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFinanceStore } from '@/context/useFinanceStore';
-import { COLORS } from '@/constants/theme';
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
+
 
 export default function CategoryDetailScreen() {
   const router = useRouter();
@@ -19,14 +18,15 @@ export default function CategoryDetailScreen() {
   const categoryId = Number(id);
 
   // Obtener estado y selectores desde Zustand
-  const { categories, transactions, getTotalExpenses, getCategorySpent } = useFinanceStore();
+  const { categories, transactions, getTotalExpenses, getCategorySpent } =
+    useFinanceStore();
 
   // Buscar la categoría seleccionada
   const category = categories.find((c) => c.id === categoryId);
 
   // Filtrar las transacciones de esta categoría
   const categoryMovements = transactions
-    .filter((t) => t.categoryId === categoryId && t.kind === 'gasto')
+    .filter((t) => t.categoryId === categoryId && t.kind === "gasto")
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Cálculos dinámicos
@@ -34,15 +34,17 @@ export default function CategoryDetailScreen() {
   const totalExpensesMonth = getTotalExpenses();
 
   // % que representa respecto al gasto total del mes
-  const percentageOfTotal = totalExpensesMonth > 0
-    ? ((totalSpentInCategory / totalExpensesMonth) * 100).toFixed(1)
-    : '0';
+  const percentageOfTotal =
+    totalExpensesMonth > 0
+      ? ((totalSpentInCategory / totalExpensesMonth) * 100).toFixed(1)
+      : "0";
 
   // % de presupuesto consumido (si tiene presupuesto asignado)
   const monthlyBudget = category?.monthlyBudget || 0;
-  const budgetProgress = monthlyBudget > 0
-    ? Math.min((totalSpentInCategory / monthlyBudget) * 100, 100)
-    : 0;
+  const budgetProgress =
+    monthlyBudget > 0
+      ? Math.min((totalSpentInCategory / monthlyBudget) * 100, 100)
+      : 0;
 
   // Manejo de caso cuando no existe la categoría
   if (!category) {
@@ -50,7 +52,10 @@ export default function CategoryDetailScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.notFoundContainer}>
           <Text style={styles.notFoundText}>Categoría no encontrada.</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
             <Text style={styles.backText}>← Volver</Text>
           </TouchableOpacity>
         </View>
@@ -62,11 +67,16 @@ export default function CategoryDetailScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* 1. Header con botón Atrás */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+
         </TouchableOpacity>
         <View style={styles.titleRow}>
-          <Text style={styles.categoryIcon}>{category.icon || '📁'}</Text>
+          <View style={styles.iconCircle}>
+                        <CategoryIcon name={category.icon} size={22} color="#4EA8DE" />
+                      </View>
           <Text style={styles.categoryTitle}>{category.name}</Text>
           <View style={styles.scopeBadge}>
             <Text style={styles.scopeText}>{category.scope.toUpperCase()}</Text>
@@ -75,15 +85,16 @@ export default function CategoryDetailScreen() {
       </View>
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        
         {/* 2. Tarjeta Resumen del Presupuesto Dinámica */}
         <View style={styles.summaryCard}>
           <Text style={styles.cardLabel}>Gastado este mes</Text>
           <Text style={styles.totalSpentText}>
-            ${totalSpentInCategory.toLocaleString('es-CO')}
+            ${totalSpentInCategory.toLocaleString("es-CO")}
           </Text>
           <Text style={styles.percentageSubtext}>
-            Representa el <Text style={styles.boldText}>{percentageOfTotal}%</Text> de tus gastos totales.
+            Representa el{" "}
+            <Text style={styles.boldText}>{percentageOfTotal}%</Text> de tus
+            gastos totales.
           </Text>
 
           {/* Barra de Progreso vs Presupuesto */}
@@ -91,7 +102,8 @@ export default function CategoryDetailScreen() {
             <View style={styles.budgetLabelRow}>
               <Text style={styles.budgetLabel}>Presupuesto mensual</Text>
               <Text style={styles.budgetAmount}>
-                ${totalSpentInCategory.toLocaleString('es-CO')} /${monthlyBudget.toLocaleString('es-CO')}
+                ${totalSpentInCategory.toLocaleString("es-CO")} /$
+                {monthlyBudget.toLocaleString("es-CO")}
               </Text>
             </View>
 
@@ -99,45 +111,25 @@ export default function CategoryDetailScreen() {
               <View
                 style={[
                   styles.progressBarFill,
-                  { 
+                  {
                     width: `${budgetProgress}%`,
-                    backgroundColor: budgetProgress >= 100 ? COLORS.expense : COLORS.primary
-                  }
+                    backgroundColor:
+                      budgetProgress >= 100 ? COLORS.expense : COLORS.primary,
+                  },
                 ]}
               />
             </View>
           </View>
         </View>
 
-        {/* 3. Gráfico de Consumo Visual */}
-        <View style={styles.chartCard}>
-          <Text style={styles.cardTitle}>Gasto por Semana</Text>
-          <View style={styles.chartBarsContainer}>
-            <View style={styles.barColumn}>
-              <View style={[styles.bar, { height: 30 }]} />
-              <Text style={styles.barLabel}>Sem 1</Text>
-            </View>
-            <View style={styles.barColumn}>
-              <View style={[styles.bar, { height: 65, backgroundColor: COLORS.expense }]} />
-              <Text style={styles.barLabel}>Sem 2</Text>
-            </View>
-            <View style={styles.barColumn}>
-              <View style={[styles.bar, { height: 20 }]} />
-              <Text style={styles.barLabel}>Sem 3</Text>
-            </View>
-            <View style={styles.barColumn}>
-              <View style={[styles.bar, { height: 10 }]} />
-              <Text style={styles.barLabel}>Sem 4</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 4. Lista de Movimientos Reales en esta Categoría */}
+        {/* 3. Lista de Movimientos Reales en esta Categoría */}
         <Text style={styles.sectionTitle}>Historial en {category.name}</Text>
 
         {categoryMovements.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>Aún no hay gastos registrados en esta categoría.</Text>
+            <Text style={styles.emptyText}>
+              Aún no hay gastos registrados en esta categoría.
+            </Text>
           </View>
         ) : (
           <View style={styles.movementsList}>
@@ -146,21 +138,24 @@ export default function CategoryDetailScreen() {
                 key={item.id}
                 style={[
                   styles.movementItem,
-                  index === categoryMovements.length - 1 && { borderBottomWidth: 0 }
+                  index === categoryMovements.length - 1 && {
+                    borderBottomWidth: 0,
+                  },
                 ]}
               >
                 <View style={styles.movementInfo}>
-                  <Text style={styles.movementNote}>{item.note || category.name}</Text>
+                  <Text style={styles.movementNote}>
+                    {item.note || category.name}
+                  </Text>
                   <Text style={styles.movementDate}>{item.date}</Text>
                 </View>
                 <Text style={styles.movementAmount}>
-                  -${item.amount.toLocaleString('es-CO')}
+                  -${item.amount.toLocaleString("es-CO")}
                 </Text>
               </View>
             ))}
           </View>
         )}
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -170,12 +165,20 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   notFoundContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+  },
+   iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#E6F3FB", // celeste pastel
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
   },
   notFoundText: {
     fontSize: 16,
@@ -191,12 +194,12 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.primary,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   categoryIcon: {
     fontSize: 28,
@@ -204,19 +207,19 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.textPrimary,
     marginRight: 10,
   },
   scopeBadge: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: "#E2E8F0",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   scopeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.textSecondary,
   },
   container: {
@@ -228,7 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     marginVertical: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
   },
   totalSpentText: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.expense,
   },
   percentageSubtext: {
@@ -251,7 +254,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   boldText: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.textPrimary,
   },
   budgetSection: {
@@ -260,8 +263,8 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   budgetLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   budgetLabel: {
@@ -270,17 +273,17 @@ const styles = StyleSheet.create({
   },
   budgetAmount: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.textPrimary,
   },
   progressBarBackground: {
     height: 10,
     backgroundColor: COLORS.background,
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBarFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 5,
   },
   chartCard: {
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -296,18 +299,18 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.textPrimary,
     marginBottom: 16,
   },
   chartBarsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-end",
     height: 100,
   },
   barColumn: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 40,
   },
   bar: {
@@ -322,7 +325,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.textPrimary,
     marginBottom: 12,
   },
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
   },
   emptyText: {
@@ -344,9 +347,9 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   movementItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -356,7 +359,7 @@ const styles = StyleSheet.create({
   },
   movementNote: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.textPrimary,
   },
   movementDate: {
@@ -366,7 +369,7 @@ const styles = StyleSheet.create({
   },
   movementAmount: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.expense,
   },
 });

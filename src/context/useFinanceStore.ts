@@ -8,6 +8,7 @@ interface FinanceState {
   transactions: Transaction[];
   selectedFilter: "todos" | Kind;
   isLoading: boolean;
+  loadError: string | null;
 
   // Acciones de sincronización
   loadInitialData: (_userId?: string) => Promise<void>;
@@ -29,11 +30,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   categories: [],
   transactions: [],
   selectedFilter: "todos",
-  isLoading: false,
+  isLoading: true,
+  loadError: null,
 
   // El parámetro se ignora: el usuario sale del token, no de la app
   loadInitialData: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, loadError: null });
     try {
       const [categories, transactions] = await Promise.all([
         api<Category[]>("/api/categories", {}, token()),
@@ -42,6 +44,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       set({ categories, transactions });
     } catch (error) {
       console.error("Error al cargar datos:", error);
+      set({
+        loadError:
+          error instanceof Error
+            ? error.message
+            : "Error desconocido al cargar los datos.",
+      });
     } finally {
       set({ isLoading: false });
     }
@@ -75,7 +83,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   // Al cerrar sesión, limpiar los datos de la usuaria anterior
   reset: () =>
-    set({ categories: [], transactions: [], selectedFilter: "todos" }),
+    set({
+      categories: [],
+      transactions: [],
+      selectedFilter: "todos",
+      loadError: null,
+    }),
 
   getTotalIncome: () =>
     get()

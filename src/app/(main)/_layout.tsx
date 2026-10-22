@@ -4,12 +4,12 @@ import { Text } from 'react-native';
 import { useFinanceStore } from '@/context/useFinanceStore';
 
 export default function MainLayout() {
-  const { loadInitialData } = useFinanceStore();
+  const loadInitialData = useFinanceStore((state) => state.loadInitialData);
 
   useEffect(() => {
     // Cargar datos del usuario desde Neon al abrir la app
     loadInitialData();
-  }, []);
+  }, [loadInitialData]);
 
   return (
     <Tabs

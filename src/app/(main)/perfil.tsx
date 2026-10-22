@@ -5,12 +5,10 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Platform,
-  StatusBar,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFinanceStore } from '@/context/useFinanceStore';
 import { COLORS } from '@/constants/theme';
 import { useAuth } from "@/lib/auth";
@@ -22,10 +20,6 @@ export default function ProfileScreen() {
   const user = useAuth((s) => s.user);
 const logout = useAuth((s) => s.logout);
 
-const nombre = user?.fullName ?? "Usuario";
-const correo = user?.email ?? "";
-const inicial = nombre.charAt(0).toUpperCase();
-
   const handleLogout = () => {
     Alert.alert(
       'Cerrar sesión',
@@ -35,7 +29,11 @@ const inicial = nombre.charAt(0).toUpperCase();
         {
           text: 'Sí, salir',
           style: 'destructive',
-          onPress: () => router.replace('/(auth)/login'),
+          onPress: async () => {
+            await logout();
+            useFinanceStore.getState().reset();
+            router.replace('/(auth)/login');
+          },
         },
       ]
     );
@@ -149,7 +147,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,

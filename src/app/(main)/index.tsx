@@ -1,24 +1,21 @@
 import { Button } from "@/components/common/Button";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
 import { Input } from "@/components/common/Input";
 import { COLORS } from "@/constants/theme";
-import { useAuth } from "@/lib/auth";
-import { useFinanceStore } from "@/context/useFinanceStore";
 import { CategoryChips } from "@/features/home/components/CategoryChips";
 import { SummaryCard } from "@/features/home/components/SummaryCard";
-import { useEffect, useState } from "react";
+import {useHomeSreen} from "@/hooks/useHomeScreen"
+
 import {
   Alert,
-  Platform,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { CategoryIcon } from "@/components/common/CategoryIcon";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 // Fecha de hoy en Colombia, formato AAAA-MM-DD
@@ -26,61 +23,47 @@ const hoyColombia = () =>
   new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
 
 export default function HomeScreen() {
-  const {
-    categories,
-    loadInitialData,
-    getTotalIncome,
-    getTotalExpenses,
-    getNetBalance,
-    getSpentPercentage,
-    addTransaction,
-  } = useFinanceStore();
-  const user = useAuth((s) => s.user);
+  const {categories,
+        transactions,
+        isLoading,
+        loadError,
+        loadInitialData,
+        getTotalIncome,
+        getTotalExpenses,
+        getNetBalance,
+        getSpentPercentage,
+        addTransaction, transactionType, setTransactionType, note, setNote, amount, setAmount, setPickedCategoryId, guardando, setGuardando, selectedCategoryId, nombre, inicial,} = useHomeSreen ()
 
-  const [transactionType, setTransactionType] = useState<"ingreso" | "gasto">("gasto");
-  const [note, setNote] = useState("");
-  const [amount, setAmount] = useState("");
-  const [pickedCategoryId, setPickedCategoryId] = useState<number | null>(null);
-  const [guardando, setGuardando] = useState(false);
+        const handleSave = async () => {
+          if (guardando) return;
 
-  // Cargar categorías y movimientos al entrar
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+          // Quita puntos, comas y espacios: "45.000" -> 45000
+          const numericAmount = parseInt(amount.replace(/\D/g, ""), 10);
+          if (!numericAmount || numericAmount <= 0) {
+            return Alert.alert("Error", "Ingresa un monto válido mayor a 0");
+          }
 
-  // Si no ha elegido ninguna, usa la primera que haya llegado de la API
-  const selectedCategoryId = pickedCategoryId ?? categories[0]?.id ?? null;
+          setGuardando(true);
+          const ok = await addTransaction({
+            kind: transactionType,
+            amount: numericAmount,
+            date: hoyColombia(),
+            categoryId: selectedCategoryId,
+            note: note.trim() || null,
+          });
+          setGuardando(false);
 
-  const nombre = user?.fullName ?? "Usuario";
-  const inicial = nombre.charAt(0).toUpperCase();
+          if (!ok) {
+            return Alert.alert(
+              "No se pudo guardar",
+              "Revisa tu conexión e inténtalo de nuevo.",
+            );
+          }
 
-  const handleSave = async () => {
-    if (guardando) return;
-
-    // Quita puntos, comas y espacios: "45.000" -> 45000
-    const numericAmount = parseInt(amount.replace(/\D/g, ""), 10);
-    if (!numericAmount || numericAmount <= 0) {
-      return Alert.alert("Error", "Ingresa un monto válido mayor a 0");
-    }
-
-    setGuardando(true);
-    const ok = await addTransaction({
-      kind: transactionType,
-      amount: numericAmount,
-      date: hoyColombia(),
-      categoryId: selectedCategoryId,
-      note: note.trim() || null,
-    });
-    setGuardando(false);
-
-    if (!ok) {
-      return Alert.alert("No se pudo guardar", "Revisa tu conexión e inténtalo de nuevo.");
-    }
-
-    setAmount("");
-    setNote("");
-    Alert.alert("¡Éxito!", "Movimiento guardado correctamente");
-  };
+          setAmount("");
+          setNote("");
+          Alert.alert("¡Éxito!", "Movimiento guardado correctamente");
+        };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -102,7 +85,30 @@ export default function HomeScreen() {
           expenses={getTotalExpenses()}
           netBalance={getNetBalance()}
           spentPercentage={getSpentPercentage()}
+          isLoading={isLoading}
         />
+        {loadError ? (
+          <View style={styles.dataMessageContainer}>
+            <Text style={styles.dataMessage}>
+              No se pudieron cargar tus movimientos: {loadError}. Revisa la
+              conexión con el servidor e inténtalo de nuevo.
+            </Text>
+            <TouchableOpacity
+              onPress={() => void loadInitialData()}
+              disabled={isLoading}
+              accessibilityRole="button"
+            >
+              <Text style={styles.retryText}>
+                {isLoading ? "Cargando..." : "Reintentar"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : !isLoading && transactions.length === 0 ? (
+          <Text style={styles.dataMessage}>
+            Aún no hay movimientos. Registra un ingreso o un gasto para ver tus totales
+            aquí.
+          </Text>
+        ) : null}
 
         {/* 3. Gastos por Categoría */}
         <View style={styles.section}>
@@ -170,7 +176,10 @@ export default function HomeScreen() {
               return (
                 <TouchableOpacity
                   key={cat.id}
-                  style={[styles.selectCatChip, activa && styles.selectCatChipActive]}
+                  style={[
+                    styles.selectCatChip,
+                    activa && styles.selectCatChipActive,
+                  ]}
                   onPress={() => setPickedCategoryId(cat.id)}
                   activeOpacity={0.7}
                 >
@@ -179,7 +188,12 @@ export default function HomeScreen() {
                     size={16}
                     color={activa ? "#FFFFFF" : "#4EA8DE"}
                   />
-                  <Text style={[styles.selectCatText, activa && styles.selectCatTextActive]}>
+                  <Text
+                    style={[
+                      styles.selectCatText,
+                      activa && styles.selectCatTextActive,
+                    ]}
+                  >
                     {cat.name}
                   </Text>
                 </TouchableOpacity>
@@ -212,7 +226,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F4F9FD",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,
@@ -252,6 +265,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2B2D42",
     marginBottom: 12,
+  },
+  dataMessage: {
+    color: "#8D99AE",
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  dataMessageContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  retryText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
   categoriesContainer: {
     marginBottom: 20,
@@ -326,15 +355,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   section: {
-  marginTop: 24,
-  marginBottom: 24,
-},
-catScroll: {
-  marginBottom: 16,
-},
-catRow: {
-  paddingRight: 8,
-  gap: 8,
-},
-
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  catScroll: {
+    marginBottom: 16,
+  },
+  catRow: {
+    paddingRight: 8,
+    gap: 8,
+  },
 });

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useFinanceStore } from "@/context/useFinanceStore";
@@ -6,7 +6,25 @@ import { CategoryIcon } from "@/components/common/CategoryIcon";
 
 export function CategoryChips() {
   const router = useRouter();
-  const { categories, getCategorySpent } = useFinanceStore();
+  const categories = useFinanceStore((s) => s.categories);
+  const transactions = useFinanceStore((s) => s.transactions);
+
+  const { items, totalGastado } = useMemo(() => {
+    const totals = new Map<number, number>();
+    let total = 0;
+
+    for (const t of transactions) {
+      if (t.kind !== "gasto" || t.categoryId == null) continue;
+      totals.set(t.categoryId, (totals.get(t.categoryId) ?? 0) + t.amount);
+      total += t.amount;
+    }
+
+    const lista = categories
+      .map((c) => ({ ...c, spent: totals.get(c.id) ?? 0 }))
+      .sort((a, b) => b.spent - a.spent); // las que más gastas, primero
+
+    return { items: lista, totalGastado: total };
+  }, [categories, transactions]);
 
   return (
     <ScrollView
@@ -14,28 +32,34 @@ export function CategoryChips() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >
-      {categories.map((category) => {
-        const spent = getCategorySpent(category.id);
+      {items.map((category) => {
+        const pct = totalGastado > 0 ? Math.round((category.spent / totalGastado) * 100) : 0;
 
         return (
           <TouchableOpacity
             key={category.id}
             style={styles.chipCard}
             activeOpacity={0.7}
-            onPress={() => router.push({
-  pathname: "/categoria/[id]",
-  params: { id: String(category.id) },
-})}
+            onPress={() =>
+              router.push({
+                pathname: "/categoria/[id]",
+                params: { id: String(category.id) },
+              })
+            }
           >
             <View style={styles.iconCircle}>
               <CategoryIcon name={category.icon} size={22} color="#4EA8DE" />
             </View>
+
             <Text style={styles.categoryName} numberOfLines={2}>
               {category.name}
             </Text>
+
             <Text style={styles.spentAmount}>
-              ${spent.toLocaleString("es-CO")}
+              ${category.spent.toLocaleString("es-CO")}
             </Text>
+
+          
           </TouchableOpacity>
         );
       })}
@@ -83,4 +107,5 @@ const styles = StyleSheet.create({
     color: "#E76F51",
     marginTop: 2,
   },
+  
 });

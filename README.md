@@ -2,28 +2,28 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## Ejecutar la app en desarrollo
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
+1. Inicia el backend desde la carpeta `backend`:
 
    ```bash
-   npx expo start
+   cd backend
+   npm run dev
    ```
 
-In the output, you'll find options to open the app in a
+2. En otra terminal, desde la raíz del proyecto, inicia Expo:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npx expo start --clear
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+La URL del backend se configura en `.env.local`. Para el emulador Android de
+Android Studio usa `http://10.0.2.2:3000`, que apunta al servidor ejecutándose
+en tu computadora. Si usas un teléfono físico, reemplaza `10.0.2.2` por la IP
+local de tu computadora y conecta ambos dispositivos a la misma red Wi-Fi.
+
+El backend también necesita su archivo `backend/.env` configurado con las
+variables necesarias para la base de datos.
 
 ## Get a fresh project
 

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
-import { useFinanceStore } from "@/context/useFinanceStore";
 
 
 type User = { id: string; email: string; fullName: string };
@@ -38,7 +37,6 @@ export const useAuth = create<State>((set) => {
       guardar(await api<Session>("/api/auth/register", { method: "POST", body: JSON.stringify({ email, password, fullName }) })),
     logout: async () => {
       await SecureStore.deleteItemAsync("session");
-       useFinanceStore.getState().reset();
       set({ token: null, user: null });
     },
   };
