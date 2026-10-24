@@ -35,7 +35,12 @@ export default function LoginScreen() {
       else await login(email, password);
       // no hace falta navegar: Stack.Protected lo hace solo
     } catch (e) {
-      setError((e as Error).message);
+      const message = e instanceof Error ? e.message : "";
+      setError(
+        /fetch|network|connect/i.test(message)
+          ? "No pudimos conectar con el servidor. Verifica que esté iniciado e inténtalo de nuevo."
+          : message || "No se pudo iniciar sesión. Verifica tus datos e inténtalo de nuevo.",
+      );
     } finally {
       setEnviando(false);
     }

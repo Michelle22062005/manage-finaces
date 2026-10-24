@@ -1,43 +1,22 @@
-import React from 'react';
+
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFinanceStore } from '@/context/useFinanceStore';
-import { COLORS } from '@/constants/theme';
-import { useAuth } from "@/lib/auth";
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { COLORS } from "@/constants/theme";
 
+
+import { CategoryIcon } from "@/components/common/CategoryIcon";
+import { useProfile } from "@/hooks/useProfile";
+import { ApplicationSettings } from "@/features/profile/components/ApplicationSettings";
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const { categories } = useFinanceStore();
-  const user = useAuth((s) => s.user);
-const logout = useAuth((s) => s.logout);
+  const { user, categories, handleLogout, } = useProfile()
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás segura de que deseas salir de Mis Cuentas?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sí, salir',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            useFinanceStore.getState().reset();
-            router.replace('/(auth)/login');
-          },
-        },
-      ]
-    );
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,56 +59,8 @@ const logout = useAuth((s) => s.logout);
 
         {/* 3. Menú de Opciones y Configuración */}
         <Text style={styles.sectionTitle}>Ajustes de la Aplicación</Text>
-
-        <View style={styles.optionsCard}>
-          <TouchableOpacity style={styles.optionRow} activeOpacity={0.7}>
-            <View style={styles.optionIconContainer}>
-              <Text style={styles.optionIcon}>📊</Text>
-            </View>
-            <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>Presupuestos por Categoría</Text>
-              <Text style={styles.optionSubtitle}>Ajustar metas mensuales de gasto</Text>
-            </View>
-            <Text style={styles.arrowIcon}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.optionRow} activeOpacity={0.7}>
-            <View style={styles.optionIconContainer}>
-              <Text style={styles.optionIcon}>🔔</Text>
-            </View>
-            <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>Recordatorios de Registro</Text>
-              <Text style={styles.optionSubtitle}>Aviso al finalizar el turno diario</Text>
-            </View>
-            <Text style={styles.arrowIcon}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.optionRow} activeOpacity={0.7}>
-            <View style={styles.optionIconContainer}>
-              <Text style={styles.optionIcon}>🔒</Text>
-            </View>
-            <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>Seguridad y Cuenta</Text>
-              <Text style={styles.optionSubtitle}>Cambiar contraseña o correo</Text>
-            </View>
-            <Text style={styles.arrowIcon}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.optionRow, { borderBottomWidth: 0 }]}
-            activeOpacity={0.7}
-          >
-            <View style={styles.optionIconContainer}>
-              <Text style={styles.optionIcon}>💬</Text>
-            </View>
-            <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>Ayuda y Soporte</Text>
-              <Text style={styles.optionSubtitle}>Preguntas frecuentes y contacto</Text>
-            </View>
-            <Text style={styles.arrowIcon}>›</Text>
-          </TouchableOpacity>
-        </View>
-
+        <ApplicationSettings/>
+        
         {/* 4. Botón de Cerrar Sesión */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
@@ -147,6 +78,14 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+   downloadButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#E6F3FB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   container: {
     flex: 1,
@@ -235,54 +174,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginBottom: 12,
   },
-  optionsCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  optionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  optionIcon: {
-    fontSize: 18,
-  },
-  optionTextContainer: {
-    flex: 1,
-  },
-  optionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  optionSubtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  arrowIcon: {
-    fontSize: 20,
-    color: COLORS.textSecondary,
-    fontWeight: '300',
-  },
+
   logoutButton: {
     backgroundColor: '#9acffa',
     height: 52,

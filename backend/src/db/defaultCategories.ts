@@ -24,4 +24,14 @@ export const DEFAULT_CATEGORIES = [
   { name: "Servicio de Agua y Alcantarillado", scope: "casa", icon: "water" },
   { name: "Internet y Televisión", scope: "casa", icon: "wifi" },
   { name: "Gas Domiciliario", scope: "casa", icon: "fire" },
+    // Deudas
+  { name: "Banco Agrario", scope: "deuda", icon: "bank" },
+  { name: "Banco de Bogotá", scope: "deuda", icon: "bank-outline" },
+  { name: "Tarjeta Nu", scope: "deuda", icon: "credit-card" },
+
+  // Casa
+  { name: "Arriendo", scope: "casa", icon: "home-city" },
+
+  // Taxi (ingresos)
+  { name: "Oro", scope: "oro", icon: "cash-plus" },
 ] as const;

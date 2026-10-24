@@ -1,7 +1,7 @@
 import { useAuth } from "@/lib/auth";
 import { useState } from "react";
 import { useFinanceStore } from "@/context/useFinanceStore";
-
+import { currentMonth, totalForTheMonth } from "@/lib/exportMonth";
 
 
 export function useHomeSreen(){
@@ -11,13 +11,16 @@ export function useHomeSreen(){
         isLoading,
         loadError,
         loadInitialData,
-        getTotalIncome,
-        getTotalExpenses,
-        getNetBalance,
-        getSpentPercentage,
         addTransaction,
       } = useFinanceStore();
       const user = useAuth((s) => s.user);
+      const monthTransactions = transactions.filter((transaction) =>
+        transaction.date.startsWith(currentMonth()),
+      );
+      const { income, expenses } = totalForTheMonth(monthTransactions);
+      const netBalance = income - expenses;
+      const spentPercentage =
+        income === 0 ? 0 : Math.min(Math.round((expenses / income) * 100), 100);
     
       const [transactionType, setTransactionType] = useState<"ingreso" | "gasto">(
         "gasto",
@@ -40,9 +43,9 @@ export function useHomeSreen(){
         isLoading,
         loadError,
         loadInitialData,
-        getTotalIncome,
-        getTotalExpenses,
-        getNetBalance,
-        getSpentPercentage,
+        totalIncome: income,
+        totalExpenses: expenses,
+        netBalance,
+        spentPercentage,
         addTransaction, transactionType, setTransactionType, note, setNote, amount, setAmount, pickedCategoryId, setPickedCategoryId, guardando, setGuardando, selectedCategoryId, nombre, inicial, }
 }

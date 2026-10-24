@@ -1,4 +1,4 @@
-import { File, Paths } from "expo-file-system";
+import {Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import type { Category, Transaction } from "@/types/finance";
 
@@ -78,23 +78,42 @@ export function buildCsv(movs: Transaction[], categories: Category[]) {
   return "\uFEFF" + lineas.join("\r\n");
 }
 
+export async function saveCsv(
+  movs: Transaction[],
+  categories: Category[],
+  month: string,
+): Promise<"guardado" | "cancelado">{
+  const content = buildCsv(movs, categories);
+
+  let file: Directory;
+  try {
+    file = await Directory.pickDirectoryAsync();
+  }catch {
+    return "cancelado"
+  }
+  const archive = file.createFile(`mis-cuentas-${month}.csv`, "text/csv");
+  archive.write(content);
+    return "guardado"
+  
+}
+
 export async function shareCsv(
   movs: Transaction[],
   categories: Category[],
-  mes: string,
+  month: string,
 ) {
   if (!(await Sharing.isAvailableAsync())) {
     throw new Error("Este dispositivo no permite compartir archivos.");
   }
 
-  const file = new File(Paths.cache, `mis-cuentas-${mes}.csv`);
+  const file = new File(Paths.cache, `mis-cuentas-${month}.csv`);
   if (file.exists) file.delete(); // por si ya lo habías exportado antes
   file.create();
   file.write(buildCsv(movs, categories));
 
   await Sharing.shareAsync(file.uri, {
     mimeType: "text/csv",
-    dialogTitle: `Movimientos de ${nameMonth(mes)}`,
+    dialogTitle: `Movimientos de ${nameMonth(month)}`,
     UTI: "public.comma-separated-values-text",
   });
 }

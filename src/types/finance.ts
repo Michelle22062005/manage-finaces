@@ -1,5 +1,7 @@
 export type Kind = 'ingreso' | 'gasto';
 export type Scope = 'casa' | 'propio' | 'taxi';
+export type GoldKind = "entrada" | "salida";
+
 
 export interface Category {
   id: number;
@@ -19,4 +21,12 @@ export interface Transaction {
   categoryId: number | null;
   note?: string | null;
   createdAt?: string;
+}
+export interface GoldMovement {
+  id: number;
+  kind: GoldKind;
+  grams: number;
+  amount: number | null;
+  date: string;
+  note: string | null;
 }

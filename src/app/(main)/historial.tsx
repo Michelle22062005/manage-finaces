@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+
 import {
   Alert,
   StyleSheet,
@@ -8,16 +8,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFinanceStore } from "@/context/useFinanceStore";
 import { COLORS } from "@/constants/theme";
 import { CategoryIcon } from "@/components/common/CategoryIcon";
 import {
-  shareCsv,
-  currentMonth,
   moveMonth,
   nameMonth,
-  totalForTheMonth,
 } from "@/lib/exportMonth";
+import { useRecord } from "@/hooks/useRecord";
 
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -48,70 +45,9 @@ const cop = (n: number) =>
   `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("es-CO")}`;
 
 export default function HistoryScreen() {
-  const { transactions, categories, selectedFilter, setFilter } = useFinanceStore();
-  const [month, setMonth] = useState(currentMonth());
-  const [exportando, setExportando] = useState(false);
-
-  // Movimientos del mes elegido (el archivo lleva todo el mes, sin el filtro de chips)
-  const ofTheMonth = useMemo(
-    () => transactions.filter((t) => t.date.startsWith(month)),
-    [transactions, month],
-  );
-
-  // Lo que se ve en pantalla: el mes + el filtro de chips
-  const filteredTransactions = ofTheMonth.filter(
-    (t) => selectedFilter === "todos" || t.kind === selectedFilter,
-  );
-
-  const totales = totalForTheMonth(ofTheMonth);
-
-  const handleExportar = async () => {
-    if (exportando) return;
-    if (ofTheMonth.length === 0) {
-      return Alert.alert("Sin movimientos", `No hay movimientos en ${nameMonth(month)}.`);
-    }
-    try {
-      setExportando(true);
-      await shareCsv(ofTheMonth, categories, month);
-    } catch (e) {
-      Alert.alert("No se pudo exportar", e instanceof Error ? e.message : "Error inesperado.");
-    } finally {
-      setExportando(false);
-    }
-  };
-
-  // Agrupar por fecha ("AAAA-MM-DD")
-  const groupedByDate = filteredTransactions.reduce<Record<string, typeof transactions>>(
-    (groups, tx) => {
-      (groups[tx.date] ??= []).push(tx);
-      return groups;
-    },
-    {},
-  );
-
-  // Ordenar de la fecha más reciente a la más antigua y calcular el neto de cada día
-  const sortedDateGroups = Object.keys(groupedByDate)
-    .sort((a, b) => b.localeCompare(a))
-    .map((date) => {
-      const movements = groupedByDate[date];
-      const dayNet = movements.reduce(
-        (acc, t) => (t.kind === "ingreso" ? acc + t.amount : acc - t.amount),
-        0,
-      );
-      return { date, dayNet, movements };
-    });
-
-  // Nombre e ícono de la categoría (puede no tener)
-  const getCategoryDetails = (categoryId: number | null) => {
-    const cat = categoryId == null ? undefined : categories.find((c) => c.id === categoryId);
-    return {
-      name: cat?.name ?? "General",
-      icon: cat?.icon ?? null,
-    };
-  };
-
-  const esMesActual = month >= currentMonth();
-
+   const { selectedFilter, setFilter, month, setMonth,  totales, sortedDateGroups, getCategoryDetails, esMesActual}= useRecord()
+  
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ENCABEZADO */}
@@ -185,15 +121,6 @@ export default function HistoryScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[styles.downloadButton, exportando && { opacity: 0.5 }]}
-            onPress={handleExportar}
-            disabled={exportando}
-            activeOpacity={0.7}
-            accessibilityLabel={`Descargar movimientos de ${nameMonth(month)}`}
-          >
-            <CategoryIcon name={exportando ? "timer-sand" : "download"} size={20} color="#4EA8DE" />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -354,14 +281,7 @@ const styles = StyleSheet.create({
   activeFilterChip: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterText: { fontSize: 13, fontWeight: "600", color: COLORS.textSecondary },
   activeFilterText: { color: "#FFFFFF" },
-  downloadButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#E6F3FB",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+ 
 
   // Contenido
   container: { flex: 1, paddingHorizontal: 20 },

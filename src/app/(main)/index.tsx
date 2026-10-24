@@ -28,10 +28,10 @@ export default function HomeScreen() {
         isLoading,
         loadError,
         loadInitialData,
-        getTotalIncome,
-        getTotalExpenses,
-        getNetBalance,
-        getSpentPercentage,
+        totalIncome,
+        totalExpenses,
+        netBalance,
+        spentPercentage,
         addTransaction, transactionType, setTransactionType, note, setNote, amount, setAmount, setPickedCategoryId, guardando, setGuardando, selectedCategoryId, nombre, inicial,} = useHomeSreen ()
 
         const handleSave = async () => {
@@ -81,17 +81,16 @@ export default function HomeScreen() {
 
         {/* 2. Tarjeta de Resumen del Mes */}
         <SummaryCard
-          income={getTotalIncome()}
-          expenses={getTotalExpenses()}
-          netBalance={getNetBalance()}
-          spentPercentage={getSpentPercentage()}
+          income={totalIncome}
+          expenses={totalExpenses}
+          netBalance={netBalance}
+          spentPercentage={spentPercentage}
           isLoading={isLoading}
         />
         {loadError ? (
           <View style={styles.dataMessageContainer}>
             <Text style={styles.dataMessage}>
-              No se pudieron cargar tus movimientos: {loadError}. Revisa la
-              conexión con el servidor e inténtalo de nuevo.
+              {loadError} Revisa tu conexión e inténtalo de nuevo.
             </Text>
             <TouchableOpacity
               onPress={() => void loadInitialData()}

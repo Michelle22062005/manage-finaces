@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Category, Kind, Transaction } from "../types/finance";
+import type { Category, GoldKind, GoldMovement, Kind, Transaction} from "../types/finance"; // 
+
 
 interface FinanceState {
   categories: Category[];
@@ -9,6 +10,16 @@ interface FinanceState {
   selectedFilter: "todos" | Kind;
   isLoading: boolean;
   loadError: string | null;
+  goldMovements: GoldMovement[];
+addGold: (m: {
+  kind: GoldKind;
+  grams: number;
+  date: string;
+  amount: number | null;
+  note: string | null;
+}) => Promise<string | null>;
+
+
 
   // Acciones de sincronización
   loadInitialData: (_userId?: string) => Promise<void>;
@@ -32,24 +43,32 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   selectedFilter: "todos",
   isLoading: true,
   loadError: null,
+  goldMovements: [],
+
 
   // El parámetro se ignora: el usuario sale del token, no de la app
   loadInitialData: async () => {
     set({ isLoading: true, loadError: null });
     try {
-      const [categories, transactions] = await Promise.all([
+      const [categories, transactions, goldMovements] = await Promise.all([
         api<Category[]>("/api/categories", {}, token()),
         api<Transaction[]>("/api/transactions", {}, token()),
+        api<GoldMovement[]>("/api/gold", {}, token()).catch(() => [] as GoldMovement[]),
       ]);
-      set({ categories, transactions });
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-      set({
-        loadError:
-          error instanceof Error
-            ? error.message
-            : "Error desconocido al cargar los datos.",
+      set((state) => {
+        const loadedIds = new Set(transactions.map((transaction) => transaction.id));
+        const transactionsAddedDuringLoad = state.transactions.filter(
+          (transaction) => !loadedIds.has(transaction.id),
+        );
+       
+        return {
+          categories,
+          transactions: [...transactionsAddedDuringLoad, ...transactions],
+          goldMovements 
+        };
       });
+    } catch {
+      set({ loadError: "No pudimos cargar tus datos." });
     } finally {
       set({ isLoading: false });
     }
@@ -57,6 +76,16 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   setFilter: (selectedFilter) => set({ selectedFilter }),
 
+// nueva acción:
+addGold: async (m) => {
+  try {
+    await api("/api/gold", { method: "POST", body: JSON.stringify(m) }, token());
+    await get().loadInitialData(); // recarga: la venta también creó un ingreso de dinero
+    return null;
+  } catch (e) {
+    return e instanceof Error ? e.message : "Error inesperado.";
+  }
+},
   addTransaction: async (newTx) => {
     try {
       const saved = await api<Transaction>(
@@ -86,6 +115,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     set({
       categories: [],
       transactions: [],
+      goldMovements: [],
       selectedFilter: "todos",
       loadError: null,
     }),

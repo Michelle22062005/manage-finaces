@@ -1,7 +1,9 @@
 import { pgTable, serial, text, integer, date, pgEnum, timestamp } from "drizzle-orm/pg-core";
 
 export const kindEnum = pgEnum("kind", ["ingreso", "gasto"]);
-export const scopeEnum = pgEnum("scope", ["casa", "propio", "taxi"]);
+export const scopeEnum = pgEnum("scope", ["casa", "propio", "taxi", "deuda","oro"]);
+export const goldKindEnum = pgEnum("gold_kind", ["entrada", "salida"]);
+
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -27,6 +29,16 @@ export const transactions = pgTable("transactions", {
   amount: integer("amount").notNull(),
   date: date("date").notNull(),
   categoryId: integer("category_id").references(() => categories.id),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const goldMovements = pgTable("gold_movements", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  kind: goldKindEnum("kind").notNull(),
+  milligrams: integer("milligrams").notNull(),
+  amount: integer("amount"), // pesos recibidos en la venta (solo salidas)
+  date: date("date").notNull(),
   note: text("note"),
   createdAt: timestamp("created_at").defaultNow(),
 });

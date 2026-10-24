@@ -14,7 +14,7 @@ async function main() {
   const existentes = await db.select().from(categories).where(eq(categories.userId, user.id));
 
   for (const c of DEFAULT_CATEGORIES) {
-    const ya = existentes.find((e) => e.name === c.name);
+    const ya = existentes.find((e) => e.name.trim().toLowerCase() === c.name.toLowerCase(),);
     if (ya) {
       await db
         .update(categories)
