@@ -50,7 +50,6 @@ const SECTIONS: InfoSection[] = [
     title: "Cambios",
     body: "Si estos términos cambian, te avisaremos en la app antes de que apliquen.",
   },
-  
 ];
 
 export default function LegalScreen() {
