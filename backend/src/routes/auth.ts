@@ -6,8 +6,11 @@ export const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
   try {
-    const { email, password, fullName } = req.body;
+    const { email, password, fullName, acceptedTerms } = req.body;
     if (!email || !password || !fullName) return res.status(400).json({ message: "Faltan datos." });
+    if (acceptedTerms !== true) {
+  return res.status(400).json({ message: "Debes aceptar los términos y la política de privacidad." });
+}
     const user = await authService.register(email, password, fullName);
     res.status(201).json({ token: await signToken(user.id), user });
   } catch (e) {

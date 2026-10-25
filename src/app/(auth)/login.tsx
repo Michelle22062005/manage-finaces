@@ -1,19 +1,20 @@
-import React, { useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useAuth } from "@/lib/auth";
-import { ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
 // Colores basados en tu paleta "Calidez en Ruta"
+import { Button } from "@/components/common/Button";
 import { COLORS } from "@/constants/theme";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
 
 export default function LoginScreen() {
   const { login, register } = useAuth();
@@ -25,21 +26,26 @@ export default function LoginScreen() {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [acepta, setAcepta] = useState(false);
 
   const handleSubmit = async () => {
-    if (enviando) return;
-    setError("");
-    setEnviando(true);
-    try {
-      if (modoRegistro) await register(email, password, fullName);
-      else await login(email, password);
+    if (modoRegistro && !acepta) {
+  return setError("Debes aceptar los términos y la política de privacidad para crear tu cuenta.");
+}
+if (enviando) return;
+setError("");
+setEnviando(true);
+try {
+  if (modoRegistro) await register(email, password, fullName, acepta);
+  else await login(email, password);
       // no hace falta navegar: Stack.Protected lo hace solo
     } catch (e) {
       const message = e instanceof Error ? e.message : "";
       setError(
         /fetch|network|connect/i.test(message)
           ? "No pudimos conectar con el servidor. Verifica que esté iniciado e inténtalo de nuevo."
-          : message || "No se pudo iniciar sesión. Verifica tus datos e inténtalo de nuevo.",
+          : message ||
+              "No se pudo iniciar sesión. Verifica tus datos e inténtalo de nuevo.",
       );
     } finally {
       setEnviando(false);
@@ -65,7 +71,7 @@ export default function LoginScreen() {
           <View style={styles.logoPlaceholder}>
             <Text style={styles.logoEmoji}>🚗</Text>
           </View>
-          <Text style={styles.appName}>Mis Cuentas</Text>
+          <Text style={styles.appName}>Mi Cuenta</Text>
           <Text style={styles.tagline}>Calidez en Ruta</Text>
         </View>
 
@@ -131,20 +137,11 @@ export default function LoginScreen() {
 
           {/* Botón Iniciar Sesión */}
 
-          <TouchableOpacity
-            style={[styles.primaryButton, enviando && { opacity: 0.6 }]}
+          <Button
+            title={modoRegistro ? "Crear cuenta" : "Iniciar sesión"}
             onPress={handleSubmit}
-            disabled={enviando}
-            activeOpacity={0.8}
-          >
-            {enviando ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>
-                {modoRegistro ? "Crear cuenta" : "Iniciar sesión"}
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={enviando}
+          />
 
           {/* Separador */}
           <View style={styles.dividerContainer}>
@@ -162,6 +159,28 @@ export default function LoginScreen() {
             <Text style={styles.googleButtonText}>Continuar con Google</Text>
           </TouchableOpacity>
 
+          {modoRegistro && (
+  <View style={styles.termsRow}>
+    <TouchableOpacity
+      onPress={() => setAcepta(!acepta)}
+      hitSlop={8}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: acepta }}
+    >
+      <CategoryIcon
+        name={acepta ? "checkbox-marked" : "checkbox-blank-outline"}
+        size={24}
+        color="#4EA8DE"
+      />
+    </TouchableOpacity>
+    <Text style={styles.termsText}>
+      Acepto los{" "}
+      <Text style={styles.termsLink} onPress={() => router.push("/legal")}>
+        Términos y la Política de privacidad
+      </Text>
+    </Text>
+  </View>
+)}
           <TouchableOpacity
             onPress={() => {
               setModoRegistro(!modoRegistro);
@@ -184,6 +203,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  termsRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
+termsText: { flex: 1, fontSize: 13, color: COLORS.textSecondary },
+termsLink: { color: COLORS.primary, fontWeight: "600" },
   errorText: {
     color: "#D9534F",
     fontSize: 14,

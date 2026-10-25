@@ -30,12 +30,13 @@ export default function RootLayout() {
                 name="categoria/[id]"
                 options={{ headerShown: true, title: "Categoría" }}
               />
+                  <Stack.Screen name="how-function" options={{ headerShown: true, title: "Cómo funciona" }} />
             </Stack.Protected>
 
             <Stack.Protected guard={!user}>
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
-
+            <Stack.Screen name="legal" options={{ headerShown: true, title: "Términos y privacidad" }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </MovementsStoreProvider>

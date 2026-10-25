@@ -4,7 +4,7 @@ import { Input } from "@/components/common/Input";
 import { COLORS } from "@/constants/theme";
 import { CategoryChips } from "@/features/home/components/CategoryChips";
 import { SummaryCard } from "@/features/home/components/SummaryCard";
-import {useHomeSreen} from "@/hooks/useHomeScreen"
+import { useHomeSreen } from "@/hooks/useHomeScreen";
 
 import {
   Alert,
@@ -17,53 +17,66 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 // Fecha de hoy en Colombia, formato AAAA-MM-DD
 const hoyColombia = () =>
   new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
 
 export default function HomeScreen() {
-  const {categories,
-        transactions,
-        isLoading,
-        loadError,
-        loadInitialData,
-        totalIncome,
-        totalExpenses,
-        netBalance,
-        spentPercentage,
-        addTransaction, transactionType, setTransactionType, note, setNote, amount, setAmount, setPickedCategoryId, guardando, setGuardando, selectedCategoryId, nombre, inicial,} = useHomeSreen ()
+  const {
+    categories,
+    transactions,
+    isLoading,
+    loadError,
+    loadInitialData,
+    totalIncome,
+    totalExpenses,
+    netBalance,
+    spentPercentage,
+    addTransaction,
+    transactionType,
+    setTransactionType,
+    note,
+    setNote,
+    amount,
+    setAmount,
+    setPickedCategoryId,
+    guardando,
+    setGuardando,
+    selectedCategoryId,
+    nombre,
+    inicial,
+  } = useHomeSreen();
 
-        const handleSave = async () => {
-          if (guardando) return;
+  const handleSave = async () => {
+    if (guardando) return;
 
-          // Quita puntos, comas y espacios: "45.000" -> 45000
-          const numericAmount = parseInt(amount.replace(/\D/g, ""), 10);
-          if (!numericAmount || numericAmount <= 0) {
-            return Alert.alert("Error", "Ingresa un monto válido mayor a 0");
-          }
+    // Quita puntos, comas y espacios: "45.000" -> 45000
+    const numericAmount = parseInt(amount.replace(/\D/g, ""), 10);
+    if (!numericAmount || numericAmount <= 0) {
+      return Alert.alert("Error", "Ingresa un monto válido mayor a 0");
+    }
 
-          setGuardando(true);
-          const ok = await addTransaction({
-            kind: transactionType,
-            amount: numericAmount,
-            date: hoyColombia(),
-            categoryId: selectedCategoryId,
-            note: note.trim() || null,
-          });
-          setGuardando(false);
+    setGuardando(true);
+    const ok = await addTransaction({
+      kind: transactionType,
+      amount: numericAmount,
+      date: hoyColombia(),
+      categoryId: selectedCategoryId,
+      note: note.trim() || null,
+    });
+    setGuardando(false);
 
-          if (!ok) {
-            return Alert.alert(
-              "No se pudo guardar",
-              "Revisa tu conexión e inténtalo de nuevo.",
-            );
-          }
+    if (!ok) {
+      return Alert.alert(
+        "No se pudo guardar",
+        "Revisa tu conexión e inténtalo de nuevo.",
+      );
+    }
 
-          setAmount("");
-          setNote("");
-          Alert.alert("¡Éxito!", "Movimiento guardado correctamente");
-        };
+    setAmount("");
+    setNote("");
+    Alert.alert("¡Éxito!", "Movimiento guardado correctamente");
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -71,7 +84,7 @@ export default function HomeScreen() {
         {/* 1. Header / Navbar */}
         <View style={styles.navbar}>
           <View>
-            <Text style={styles.appName}>Mis Cuentas</Text>
+            <Text style={styles.appName}>Mi Cuenta</Text>
             <Text style={styles.subGreeting}>Hola, {nombre}</Text>
           </View>
           <View style={styles.avatar}>
@@ -104,8 +117,8 @@ export default function HomeScreen() {
           </View>
         ) : !isLoading && transactions.length === 0 ? (
           <Text style={styles.dataMessage}>
-            Aún no hay movimientos. Registra un ingreso o un gasto para ver tus totales
-            aquí.
+            Aún no hay movimientos. Registra un ingreso o un gasto para ver tus
+            totales aquí.
           </Text>
         ) : null}
 
@@ -210,8 +223,9 @@ export default function HomeScreen() {
           />
 
           <Button
-            title={guardando ? "Guardando..." : "Guardar Movimiento"}
+            title="Guardar Movimiento"
             onPress={handleSave}
+            loading={guardando}
             variant={transactionType === "ingreso" ? "secondary" : "expense"}
           />
         </View>

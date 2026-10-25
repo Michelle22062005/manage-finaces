@@ -1,41 +1,59 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { palette } from '@/constants/theme';
+import { StyleSheet, Text, View } from "react-native";
+import type { ColorValue } from "react-native";
+import { COLORS } from "@/constants/theme";
 
 export type BarChartItem = {
   label: string;
-  value: number;
+  value: number; // se espera 0 o mayor
 };
 
-export function BarChart({ data }: { data: BarChartItem[] }) {
+type BarChartProps = {
+  data: BarChartItem[];
+  accessibilityLabel?: string;
+  barColor?: ColorValue;
+  trackColor?: ColorValue;
+  trackHeight?: number;
+};
+
+export function BarChart({
+  data,
+  accessibilityLabel = "Gráfico de barras",
+  barColor = COLORS.primary,
+  trackColor = "#E6F3FB",
+  trackHeight = 100,
+}: BarChartProps) {
   const maxValue = Math.max(...data.map((item) => item.value), 1);
 
   return (
-    <View accessibilityLabel="Gráfico de movimientos diarios" style={styles.chart}>
-      {data.map((item) => (
-        <View key={item.label} style={styles.column}>
-          <View style={styles.track}>
-            <View style={[styles.bar, { height: `${Math.max(6, (item.value / maxValue) * 100)}%` }]} />
+    <View accessibilityLabel={accessibilityLabel} style={styles.chart}>
+      {data.map((item, index) => {
+        const porcentaje = item.value > 0 ? Math.max(6, (item.value / maxValue) * 100) : 0;
+
+        return (
+          <View key={`${item.label}-${index}`} style={styles.column}>
+            <View style={[styles.track, { height: trackHeight, backgroundColor: trackColor }]}>
+              <View
+                style={[styles.bar, { height: `${porcentaje}%`, backgroundColor: barColor }]}
+              />
+            </View>
+            <Text style={styles.label}>{item.label}</Text>
           </View>
-          <Text style={styles.label}>{item.label}</Text>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  chart: { height: 132, flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  column: { flex: 1, alignItems: 'center', gap: 8 },
+  chart: { flexDirection: "row", alignItems: "flex-end", gap: 12 },
+  column: { flex: 1, alignItems: "center", gap: 8 },
   track: {
-    height: 100,
-    width: '100%',
+    width: "100%",
     maxWidth: 28,
-    backgroundColor: '#F1F1EC',
     borderRadius: 12,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
+    justifyContent: "flex-end",
+    overflow: "hidden",
   },
-  bar: { width: '100%', backgroundColor: palette.primaryDark, borderRadius: 12 },
-  label: { color: palette.textMuted, fontSize: 11 },
+  bar: { width: "100%", borderRadius: 12 },
+  label: { color: COLORS.textSecondary, fontSize: 11 },
 });

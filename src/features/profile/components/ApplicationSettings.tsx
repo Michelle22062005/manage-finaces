@@ -12,9 +12,11 @@ import {
   moveMonth,
   nameMonth,
 } from "@/lib/exportMonth";
+import { useRouter } from "expo-router";
 
 export function ApplicationSettings () {
     const {month, setMonth, exportando, esMesActual, ofTheMonth, exportar,} = useProfile()
+  const router = useRouter();
     
     
     return(
@@ -90,18 +92,34 @@ export function ApplicationSettings () {
         </TouchableOpacity>
         
                   <TouchableOpacity
-                    style={[styles.optionRow, { borderBottomWidth: 0 }]}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.optionIconContainer}>
-                      <Text style={styles.optionIcon}>💬</Text>
-                    </View>
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionTitle}>Ayuda y Soporte</Text>
-                      <Text style={styles.optionSubtitle}>Preguntas frecuentes y contacto</Text>
-                    </View>
-                    <Text style={styles.arrowIcon}>›</Text>
-                  </TouchableOpacity>
+  style={styles.optionRow}
+  activeOpacity={0.7}
+  onPress={() => router.push("/how-function")}
+>
+  <View style={styles.optionIconContainer}>
+    <CategoryIcon name="help-circle-outline" size={20} color="#4EA8DE" />
+  </View>
+  <View style={styles.optionTextContainer}>
+    <Text style={styles.optionTitle}>Cómo funciona la app</Text>
+    <Text style={styles.optionSubtitle}>Qué hace y cómo usarla</Text>
+  </View>
+  <Text style={styles.arrowIcon}>›</Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+  style={[styles.optionRow, { borderBottomWidth: 0 }]}
+  activeOpacity={0.7}
+  onPress={() => router.push("/legal")}
+>
+  <View style={styles.optionIconContainer}>
+    <CategoryIcon name="file-document-outline" size={20} color="#4EA8DE" />
+  </View>
+  <View style={styles.optionTextContainer}>
+    <Text style={styles.optionTitle}>Términos y privacidad</Text>
+    <Text style={styles.optionSubtitle}>Cómo cuidamos tus datos</Text>
+  </View>
+  <Text style={styles.arrowIcon}>›</Text>
+</TouchableOpacity>
                 </View>
     )
 }

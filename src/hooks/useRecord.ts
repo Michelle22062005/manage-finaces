@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   currentMonth,
   totalForTheMonth,
@@ -55,5 +55,7 @@ export function useRecord(){
     
       const esMesActual = month >= currentMonth();
 
+      
     return{transactions, categories, selectedFilter, setFilter, month, setMonth, ofTheMonth,  filteredTransactions, totales, groupedByDate, sortedDateGroups, getCategoryDetails, esMesActual}
 }
+export type RecordData = ReturnType<typeof useRecord>;

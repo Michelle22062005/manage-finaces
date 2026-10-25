@@ -2,11 +2,10 @@ import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { db } from "../db"; // Tu conexión de Drizzle
 import { esDuplicado } from "../lib/dbErrors";
-
+import { TERMS_VERSION } from "../lib/legal";
 import { DEFAULT_CATEGORIES } from "../db/defaultCategories";
-
 import { eq } from "drizzle-orm";
-import { categories, users } from "../db/schema";
+import { categories, users, goldMovements,transactions } from "../db/schema";
 
 // Hash falso para que el login tarde lo mismo exista o no el correo
 const DUMMY_HASH = bcrypt.hashSync("contrasena-falsa", 10);
@@ -40,6 +39,8 @@ export const authService = {
         email: emailNorm,
         passwordHash,
         fullName: fullName.trim(),
+        termsAcceptedAt: new Date(),
+        termsVersion: TERMS_VERSION,
       });
     } catch (e) {            // sin tipo: TypeScript lo trata como unknown
       if (esDuplicado(e)) throw new Error("El correo ya está registrado.");
@@ -80,4 +81,22 @@ export const authService = {
 
     return { id: user.id, email: user.email, fullName: user.fullName };
   },
+
+  //DELETE USER
+  async deleteAccount(userId: string, passwordPlain: string) {
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new Error("La cuenta no existe.");
+
+  // Pedir la contraseña evita que alguien con el celular desbloqueado borre todo
+  const valida = await bcrypt.compare(passwordPlain, user.passwordHash);
+  if (!valida) throw new Error("La contraseña no es correcta.");
+
+  // Todo o nada. El orden importa: los movimientos dependen de las categorías
+  await db.batch([
+    db.delete(goldMovements).where(eq(goldMovements.userId, userId)),
+    db.delete(transactions).where(eq(transactions.userId, userId)),
+    db.delete(categories).where(eq(categories.userId, userId)),
+    db.delete(users).where(eq(users.id, userId)),
+  ]);
+},
 };

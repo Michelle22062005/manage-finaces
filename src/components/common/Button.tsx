@@ -1,41 +1,65 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import React from "react";
+import {
+  ActivityIndicator,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
+import { COLORS } from "@/constants/theme";
+
+type Variant = "primary" | "secondary" | "expense" | "outline";
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'expense' | 'outline';
+  variant?: Variant;
   loading?: boolean;
-  style?: ViewStyle;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({ title, onPress, variant = 'primary', loading, style }) => {
-  const getBackgroundColor = () => {
-    switch (variant) {
-      case 'primary': return '#4EA8DE';
-      case 'secondary': return '#38A169';
-      case 'expense': return '#E76F51';
-      case 'outline': return '#FFFFFF';
-      default: return '#4EA8DE';
-    }
-  };
+const BACKGROUND: Record<Variant, string> = {
+  primary: COLORS.primary,
+  secondary: COLORS.secondary,
+  expense: COLORS.expense,
+  outline: COLORS.card,
+};
+
+export const Button: React.FC<ButtonProps> = ({
+  title,
+  onPress,
+  variant = "primary",
+  loading = false,
+  disabled = false,
+  style,
+  accessibilityLabel,
+}) => {
+  const inactivo = loading || disabled;
+  const esOutline = variant === "outline";
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        { backgroundColor: getBackgroundColor() },
-        variant === 'outline' && styles.outlineBorder,
+        { backgroundColor: BACKGROUND[variant] },
+        esOutline && styles.outlineBorder,
+        inactivo && styles.inactive,
         style,
       ]}
       onPress={onPress}
-      disabled={loading}
+      disabled={inactivo}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled: inactivo, busy: loading }}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? '#2B2D42' : '#FFFFFF'} />
+        <ActivityIndicator color={esOutline ? COLORS.textPrimary : "#FFFFFF"} />
       ) : (
-        <Text style={[styles.text, variant === 'outline' && styles.outlineText]}>{title}</Text>
+        <Text style={[styles.text, esOutline && styles.outlineText]}>{title}</Text>
       )}
     </TouchableOpacity>
   );
@@ -45,20 +69,23 @@ const styles = StyleSheet.create({
   button: {
     height: 52,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   outlineBorder: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
+  },
+  inactive: {
+    opacity: 0.6,
   },
   text: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   outlineText: {
-    color: '#2B2D42',
+    color: COLORS.textPrimary,
   },
 });
