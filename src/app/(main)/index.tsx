@@ -84,7 +84,7 @@ export default function HomeScreen() {
         {/* 1. Header / Navbar */}
         <View style={styles.navbar}>
           <View>
-            <Text style={styles.appName}>Mi Cuenta</Text>
+            <Text style={styles.appName}>Mis Finanzas</Text>
             <Text style={styles.subGreeting}>Hola, {nombre}</Text>
           </View>
           <View style={styles.avatar}>

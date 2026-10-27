@@ -43,8 +43,6 @@ export const useAuth = create<State>((set, get) => {
     },
     deleteAccount: async (password) => {
   await api("/api/account/delete", { method: "POST", body: JSON.stringify({ password }) }, get().token);
-  await SecureStore.deleteItemAsync("session");
-  set({ token: null, user: null });
 },
   };
 });

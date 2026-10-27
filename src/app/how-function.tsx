@@ -44,9 +44,9 @@ const SECTIONS: InfoSection[] = [
 export default function ComoFuncionaScreen() {
   return (
     <InfoSections
-      intro="Mi Cuenta te ayuda a tener tu plata en orden: anotas lo que entra y lo que sale, y la app hace las cuentas por ti."
+      intro="Mis Finanzas te ayuda a tener tu plata en orden: anotas lo que entra y lo que sale, y la app hace las cuentas por ti."
       sections={SECTIONS}
-      footer="Mi Cuenta es una herramienta para llevar tus registros. No reemplaza la asesoría financiera ni contable."
+      footer="Mis Finanzas es una herramienta para llevar tus registros. No reemplaza la asesoría financiera ni contable."
     />
   );
 }

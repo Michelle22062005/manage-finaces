@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/common/Button";
 import { COLORS } from "@/constants/theme";
 import { CategoryIcon } from "@/components/common/CategoryIcon";
+import { Image } from "expo-image";
+
 
 export default function LoginScreen() {
   const { login, register } = useAuth();
@@ -69,10 +71,13 @@ try {
         {/* Cabecera / Logo */}
         <View style={styles.headerContainer}>
           <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoEmoji}>🚗</Text>
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 48, height:48}}
+              contentFit="contain"/>
           </View>
-          <Text style={styles.appName}>Mi Cuenta</Text>
-          <Text style={styles.tagline}>Calidez en Ruta</Text>
+          <Text style={styles.appName}>Mis Finanzas</Text>
+          <Text style={styles.tagline}>Seguridad en tu dinero</Text>
         </View>
 
         {/* Tarjeta del Formulario */}

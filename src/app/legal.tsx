@@ -1,5 +1,7 @@
-import React from "react";
-import { InfoSections, type InfoSection } from "@/components/common/InfoSections";
+import {
+  InfoSections,
+  type InfoSection,
+} from "@/components/common/InfoSections";
 
 const RESPONSABLE = "Danna Oyola";
 const CONTACTO = "michelapache17@gmail.com";
@@ -35,11 +37,11 @@ const SECTIONS: InfoSection[] = [
     title: "Tus derechos",
     body: `Según la Ley 1581 de 2012, puedes conocer, actualizar y rectificar tus datos, pedir que se eliminen y retirar tu autorización cuando quieras. Escríbenos a ${CONTACTO}.`,
   },
-    {
+  {
     icon: "account-remove",
     title: "Eliminar tu cuenta",
-    body: `Puedes eliminar tu cuenta cuando quieras desde Perfil, en "Eliminar mi cuenta". Se borran tu cuenta y todos tus datos de forma permanente. Si no puedes entrar a la app, escribe a ${CONTACTO} y lo hacemos por ti.`,
-    },
+    body: `Puedes eliminar tu cuenta cuando quieras desde Perfil, en "Eliminar Mis Finanzas". Se borran tu cuenta y todos tus datos de forma permanente. Si no puedes entrar a la app, escribe a ${CONTACTO} y lo hacemos por ti.`,
+  },
   {
     icon: "scale-balance",
     title: "Reglas de uso",

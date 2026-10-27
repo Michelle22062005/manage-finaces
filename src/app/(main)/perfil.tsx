@@ -20,6 +20,7 @@ export default function ProfileScreen() {
     mostrarEliminar,
     setMostrarEliminar,
     handleDeleteAccount,
+    handleDeleteFinished,
   } = useProfile();
 
   return (
@@ -74,23 +75,25 @@ export default function ProfileScreen() {
         >
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.deleteLink}
           onPress={() => setMostrarEliminar(true)}
           accessibilityRole="button"
         >
-          <Text style={styles.deleteLinkText}>Eliminar mi cuenta</Text>
+          <Text style={styles.deleteLinkText}>Eliminar Mis Finanzas</Text>
         </TouchableOpacity>
 
         <DeleteAccountModal
           visible={mostrarEliminar}
           onClose={() => setMostrarEliminar(false)}
           onConfirm={handleDeleteAccount}
+          onFinished={handleDeleteFinished}
         />
 
         {/* Versión de la app */}
         <Text style={styles.versionText}>
-          Mi Cuenta v1.0.0 • Calidez en Ruta
+          Mis Finanzas v1.0.0 • Calidez en Ruta
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -199,7 +202,7 @@ const styles = StyleSheet.create({
   },
 
   logoutButton: {
-    backgroundColor: "#9acffa",
+    backgroundColor: COLORS.expense,
     height: 52,
     borderRadius: 16,
     justifyContent: "center",
@@ -207,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logoutButtonText: {
-    color: COLORS.expense,
+    color: COLORS.background,
     fontSize: 15,
     fontWeight: "700",
   },
